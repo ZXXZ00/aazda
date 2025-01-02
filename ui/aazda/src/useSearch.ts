@@ -23,6 +23,11 @@ export function generateQuery(query: string) {
           }
         ]
       }
+    },
+    highlight: {
+      fields: {
+        content: {}
+      }
     }
   };
 }
@@ -36,11 +41,16 @@ export interface SearchMapping {
   updated_at: number
 }
 
+interface Highlight {
+  content: string[]
+}
+
 export interface SearchResult {
   _index: string,
   _id: string,
   _score: number,
   _source: SearchMapping
+  highlight?: Highlight, 
 }
 
 export function useSearch(query: string, debounceTime = 500) {

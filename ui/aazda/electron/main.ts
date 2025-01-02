@@ -37,7 +37,7 @@ ipcMain.handle('open-file', async (_, filePath: string) => {
 });
 
 function registerGlobalShortcut() {
-  globalShortcut.register('Cmd+Shift+Space', () => {
+  globalShortcut.register('Cmd+/', () => {
     if (win?.isVisible()) {
       win.hide();
     } else {

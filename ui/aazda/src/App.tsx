@@ -15,11 +15,16 @@ function App() {
   }, [results, focusedIndex]);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
-  const onClick = (result: SearchResult) => {
+  const checkFocus = () => {
+    setIsInputFocused(document.activeElement === inputRef.current);
+  };
+
+  const onClick = useCallback((result: SearchResult) => {
     window.ipcRenderer.openFile(result._source.path);
     setFocusedIndex(results.findIndex(r => r._id === result._id));
-  };
+  }, [results]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
@@ -28,15 +33,15 @@ function App() {
         break;
       }
       case 'ArrowUp': {
-        setFocusedIndex(results.length === 0 ? -1 : (focusedIndex - 1) % results.length);
+        setFocusedIndex(results.length === 0 ? -1 : Math.max(focusedIndex - 1, -1));
         break;
       }
       case 'ArrowRight': {
-        setShowPreview(true);
+        setShowPreview(!isInputFocused && true);
         break;
       }
       case 'ArrowLeft': {
-        setShowPreview(false);
+        setShowPreview(!isInputFocused && false);
         break;
       }
       case 'Enter': {
@@ -48,7 +53,7 @@ function App() {
       default:
         break;
     }
-  }, [focusedIndex, results]);
+  }, [focusedIndex, isInputFocused, onClick, results]);
 
   useEffect(() => {
     const handleKeyDownEvent = (e: KeyboardEvent) => {
@@ -84,6 +89,8 @@ function App() {
             setQuery(event.target.value);
             setShowPreview(false);
           }}
+          onBlur={checkFocus}
+          onFocus={checkFocus}
         />
       </div>
       <div id="result">
@@ -92,8 +99,7 @@ function App() {
             {results.map((result) => 
               <SearchResultRow
                 key={result._id}
-                result={result._source}
-                id={result._id}
+                result={result}
                 onClick={() => onClick(result)}
                 selected={selected?._id === result._id}
               />
