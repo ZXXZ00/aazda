@@ -3,6 +3,7 @@ import './App.css';
 import { SearchResult, useSearch } from './useSearch';
 import { SearchResultRow } from './SearchResultRow';
 import { Preview } from './Preview';
+import { SearchIcon } from './SearchIcon';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -81,7 +82,7 @@ function App() {
   return (
     <>
       <div id="input-box">
-        <i className="fas fa-search"></i>
+        <SearchIcon />
         <input
           ref={inputRef}
           type='text'

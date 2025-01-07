@@ -10,7 +10,7 @@
 #input-box {
   display: flex;
   align-items: center;
-  height: 50px;
+  height: 40px;
   width: 100%;
   border-bottom: 1px solid #888888;
 }
@@ -22,9 +22,11 @@
 
 #result-list {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+  ul {
+    list-style-type: none;
+    padding: 2px;
+    margin: 2px;
+  }
 }
 
 #preview {
@@ -37,22 +39,18 @@
   flex: 1
 }
 
+.icons {
+  padding: 5px;
+}
+
 input {
   width: 100%;
   height: 100%;
-  padding: 5px 20px;
-  font-size: large;
+  font-size: x-large;
   outline: none;
   background: none;
   border: none;
 }
-
-ul {
-  list-style-type: none;
-  padding: 2px;
-  margin: 2px;
-}
-
 
 .result-row {
   border: 1px solid #888888;
