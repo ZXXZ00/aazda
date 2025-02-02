@@ -13,12 +13,14 @@ export function SearchResultRow({result, selected, onClick}: SearchResultRowProp
       className={`result-row ${selected ? 'selected' : ''}`}
       onClick={onClick}>
       <div>
-        {result._source.name}
+        {result.fields.name}
       </div>
       { result.highlight?.content && result.highlight.content.length > 0 &&
         <div className="highlight"
           dangerouslySetInnerHTML={
-            {__html: DOMPurify.sanitize(result.highlight.content[0], {ALLOWED_TAGS: ['em']})}
+            {__html:
+              DOMPurify.sanitize(result.highlight.content[0], {ALLOWED_TAGS: ['em']})
+                .replace(/(&gt;)|(&lt;)|(\/&gt;)/g, '')} // remove html tags
           }>
         </div> }
     </li>

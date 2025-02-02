@@ -1,20 +1,20 @@
 import os
 import sys
+from Parser import Parser
 from PlainTextParser import PlainTextParser
+from TikaParser import TikaParser
 from opensearch import bulk
 
 plain_text_parser = PlainTextParser()
 
-parsers = {".txt": plain_text_parser}
-# set of supported extensions
-supported = parsers.keys()
+parsers: dict[str, Parser] = {".txt": plain_text_parser}
 
 
 def transform(path: str):
     [_, ext] = os.path.splitext(path)
     parser = parsers.get(ext)
     if parser is None:
-        raise Exception(ext + " is not supported")
+        parser = TikaParser()
     mapping = parser.parse(path)
     return mapping
 
@@ -23,9 +23,7 @@ def transform(path: str):
 def ingest(path: str):
     for root, dirs, files in os.walk(path, True):
         # ignore hidden file and path
-        files = [
-            f for f in files if not f[0] == "." and os.path.splitext(f)[1] in supported
-        ]
+        files = [f for f in files if not f[0] == "."]
         dirs[:] = [d for d in dirs if not d[0] == "."]
 
         bulk([transform(os.path.join(root, name)) for name in files])
@@ -44,10 +42,6 @@ def main():
     if os.path.isdir(path):
         return ingest(path)
 
-    [_, ext] = os.path.splitext(path)
-    if ext not in supported:
-        print("Unsupported file format\nSupported file formats:", supported)
-        return
     return ingest_file(path)
 
 

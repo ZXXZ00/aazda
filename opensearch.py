@@ -1,4 +1,5 @@
 from dataclasses import dataclass, fields
+from typing import Any, Dict, List, Optional
 from opensearchpy import OpenSearch
 from stop_words import english
 
@@ -21,7 +22,7 @@ remove_underscore = {
 stemmed_analyzer = {
     "stemmed_analyzer": {
         "tokenizer": "standard",
-        "char_filter": ["remove_underscore"],
+        "char_filter": ["html_strip", "remove_underscore"],
         "filter": [
             "lowercase",
             "custom_stop",
@@ -46,8 +47,8 @@ setting = {
 class FileMetadata:
     path: str
     size: int
-    created_at: int
-    updated_at: int
+    created_at: str
+    updated_at: str
 
 
 @dataclass
@@ -56,8 +57,9 @@ class Mapping:
     content: str
     path: str
     size: int
-    created_at: int
-    updated_at: int
+    created_at: str
+    updated_at: str
+    metadata: Optional[List[Dict[str, Any]]] = None
 
     def to_json(self):
         return {
@@ -67,6 +69,7 @@ class Mapping:
             "size": self.size,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            "metadata": self.metadata,
         }
 
 
@@ -98,6 +101,21 @@ mapping = {
         "size": {"type": "unsigned_long"},
         "created_at": {"type": "date"},
         "updated_at": {"type": "date"},
+        "metadata": {
+            "type": "nested",
+            "dynamic": "strict",
+            "properties": {
+                "key": {"type": "keyword"},
+                "val_str": {
+                    "type": "text",
+                    "analyzer": "stemmed_analyzer",
+                    "search_analyzer": "stemmed_analyzer",
+                },
+                "val_datetime": {"type": "date"},
+                "val_int": {"type": "integer"},
+                "val_float": {"type": "float"},
+            },
+        },
     }
 }
 

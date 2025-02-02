@@ -23,7 +23,7 @@ function App() {
   };
 
   const onClick = useCallback((result: SearchResult) => {
-    window.ipcRenderer.openFile(result._source.path);
+    window.ipcRenderer.openFile(result.fields.path);
     setFocusedIndex(results.findIndex(r => r._id === result._id));
   }, [results]);
 
@@ -108,7 +108,7 @@ function App() {
           </ul>
         </div>
         { showPreview && selected && <div id="preview">
-          <Preview path={selected._source.path} />
+          <Preview path={selected.fields.path} />
         </div> }
       </div>
     </>
