@@ -1,5 +1,5 @@
 import { SearchResult } from './useSearch';
-import  DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 
 interface SearchResultRowProps {
   result: SearchResult

@@ -1,15 +1,58 @@
 import mime from'mime';
+import DOMPurify from 'dompurify';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+
+import { INDEX, SEARCH_ENDPOINT } from './useSearch';
+
+const URL = `${SEARCH_ENDPOINT}/${INDEX}/_source/`;
 
 interface PreviewProps {
+  id: string
+  type: string
   path: string
 }
 
-export function Preview({path}: PreviewProps) {
+const typesRenderingFromFile = new Set(['application/pdf']);
+
+// for future maybe depends on the file type using different renderer
+export function Preview({ id, type, path }: PreviewProps) {
+  const [content, setContent] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const mimeType = type === 'unknown' ? mime.getType(path) : type;
   const filePath = `file://${path}`;
-  const mimeType = mime.getType(path);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const source = await axios.get(URL + id, { params: { _source_includes: 'content' } });
+        setContent(source.data.content);
+      } catch (err) {
+        setError('Failed to load content');
+      }
+    };
+
+    if (!mimeType || mimeType === 'application/octet-stream') {
+      setError('Preview not supported for this file');
+      return;
+    }
+    if (!typesRenderingFromFile.has(mimeType)) {
+      fetchData();
+    }
+  }, [id, mimeType]);
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (mimeType && typesRenderingFromFile.has(mimeType)) {
+    return <object className="preview-content" data={filePath} type={mimeType}></object>;
+  }
+
   return (
-    mimeType ?
-      <object className="preview-content" data={filePath} type={mimeType}></object> :
-      <p>preview not supported for this file</p>
+    <div dangerouslySetInnerHTML={
+      { __html: DOMPurify.sanitize(content || 'Could not preview for this file') }}>
+    </div>
   );
 }

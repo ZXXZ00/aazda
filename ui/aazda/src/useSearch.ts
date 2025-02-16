@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+export const SEARCH_ENDPOINT = 'http://localhost:9200';
+export const INDEX = 'test';
 
-const URL = 'http://localhost:9200/test/_search';
+const URL = `${SEARCH_ENDPOINT}/${INDEX}/_search`;
 
 export function generateQuery(query: string) {
   return {
@@ -41,12 +43,13 @@ export function generateQuery(query: string) {
       }
     },
     _source: false,
-    fields: ['name', 'path', 'created_at', 'updated_at'],
+    fields: ['name', 'file_type', 'path', 'created_at', 'updated_at'],
   };
 }
 
 interface RawSearchFieldMapping {
   name: string[],
+  file_type: string[]
   path: string[],
   created_at: string[],
   updated_at: string[]

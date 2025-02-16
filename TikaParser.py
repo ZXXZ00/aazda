@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 from datetime import datetime
 from collections import defaultdict
 from dateutil import parser as date_parser  # type: ignore
-from tika import parser  # type: ignore
+from tika import parser, detector  # type: ignore
 
 URL = "http://localhost:9998/tika"
 
@@ -24,13 +24,16 @@ def DEFAULT_FILTER(key: str, value: CastedValue) -> bool:
     return not key.startswith(("X-TIKA", "Content-", "resourceName"))
 
 
+# parsing using tika default true to get xml content
 class TikaParser(Parser):
     def __init__(
         self,
         metadata_filter: Callable[[str, CastedValue], bool] = DEFAULT_FILTER,
+        xmlContent: bool = True,
     ) -> None:
         super().__init__()
         self.metadata_filter = metadata_filter
+        self.xmlContent = xmlContent
 
     def to_metadata_mapping(
         self,
@@ -53,22 +56,31 @@ class TikaParser(Parser):
             return ret
         return None
 
-    def extract_metadata(self, path: str) -> FileMetadata:
+    # always return unknown for the type, this doesn't call tika
+    def extract_basic_metadata(self, path: str) -> FileMetadata:
         abs_path = os.path.abspath(path)
         stats = os.stat(abs_path)
         return FileMetadata(
+            os.path.basename(path),
             abs_path,
+            "unknown",
             stats.st_size,
             datetime.fromtimestamp(stats.st_ctime).isoformat(),
             datetime.fromtimestamp(stats.st_mtime).isoformat(),
         )
 
+    def extract_metadata(self, path: str) -> FileMetadata:
+        metadata = self.extract_basic_metadata(path)
+        metadata.file_type = detector.from_file(path)  # MIME type
+        return metadata
+
     def read_content(self, path: str) -> str:
         return parser.from_file(path, URL, "text")["content"]
 
     def parse(self, path: str) -> Mapping:
-        file_meta = self.extract_metadata(path)
-        parsed = parser.from_file(path, URL, xmlContent=True)
+        # extract basic metadata to avoid two tika calls
+        file_meta = self.extract_basic_metadata(path)
+        parsed = parser.from_file(path, URL, xmlContent=self.xmlContent)
         metadata: Dict[str, Any] = parsed["metadata"]
         flattened_metadata = flatten_dict(metadata)
         normalized_metadata = normalize_dict(flattened_metadata)
@@ -77,10 +89,16 @@ class TikaParser(Parser):
             for key, values in normalized_metadata.items()
             if (mapping := self.to_metadata_mapping(key, values))
         ]
+        file_type = (
+            metadata["Content-Type"].split(";")[0]
+            if "Content-Type" in metadata
+            else detector.from_file(path)
+        )
         return Mapping(
-            name=os.path.basename(path),
+            name=file_meta.name,
             content=parsed["content"],
             path=file_meta.path,
+            file_type=file_type,
             size=file_meta.size,
             created_at=file_meta.created_at,
             updated_at=file_meta.updated_at,

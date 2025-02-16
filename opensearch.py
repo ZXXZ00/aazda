@@ -45,7 +45,9 @@ setting = {
 
 @dataclass
 class FileMetadata:
+    name: str
     path: str
+    file_type: str
     size: int
     created_at: str
     updated_at: str
@@ -56,6 +58,7 @@ class Mapping:
     name: str
     content: str
     path: str
+    file_type: str
     size: int
     created_at: str
     updated_at: str
@@ -66,6 +69,7 @@ class Mapping:
             "name": self.name,
             "content": self.content,
             "path": self.path,
+            "file_type": self.file_type,
             "size": self.size,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -98,6 +102,7 @@ mapping = {
             "search_analyzer": "stemmed_analyzer",
         },
         "path": {"type": "keyword"},
+        "file_type": {"type": "keyword"},
         "size": {"type": "unsigned_long"},
         "created_at": {"type": "date"},
         "updated_at": {"type": "date"},

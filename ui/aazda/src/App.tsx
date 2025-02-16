@@ -108,7 +108,7 @@ function App() {
           </ul>
         </div>
         { showPreview && selected && <div id="preview">
-          <Preview path={selected.fields.path} />
+          <Preview id={selected._id} type={selected.fields.file_type} path={selected.fields.path} />
         </div> }
       </div>
     </>

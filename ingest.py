@@ -6,15 +6,19 @@ from TikaParser import TikaParser
 from opensearch import bulk
 
 plain_text_parser = PlainTextParser()
+tika_parser = TikaParser()
 
-parsers: dict[str, Parser] = {".txt": plain_text_parser}
+parsers: dict[str, Parser] = {
+    ".txt": plain_text_parser,
+    "text": plain_text_parser,
+}
 
 
 def transform(path: str):
     [_, ext] = os.path.splitext(path)
     parser = parsers.get(ext)
     if parser is None:
-        parser = TikaParser()
+        parser = tika_parser
     mapping = parser.parse(path)
     return mapping
 

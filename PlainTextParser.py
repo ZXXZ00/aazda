@@ -14,7 +14,9 @@ class PlainTextParser(Parser):
         abs_path = os.path.abspath(path)
         stats = os.stat(abs_path)
         return FileMetadata(
+            os.path.basename(path),
             abs_path,
+            "text/plain",
             stats.st_size,
             datetime.fromtimestamp(stats.st_ctime).isoformat(),
             datetime.fromtimestamp(stats.st_mtime).isoformat(),
@@ -28,8 +30,9 @@ class PlainTextParser(Parser):
         metadata = self.extract_metadata(path)
         content = self.read_content(path)
         return Mapping(
-            name=os.path.basename(path),
+            name=metadata.name,
             content=content,
+            file_type="text/plain",
             path=metadata.path,
             size=metadata.size,
             created_at=metadata.created_at,
