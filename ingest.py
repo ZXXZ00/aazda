@@ -1,34 +1,15 @@
 import os
 import sys
-from Parser import Parser
-from PlainTextParser import PlainTextParser
-from TikaParser import TikaParser
+from parse import transform
 from opensearch import bulk
-
-plain_text_parser = PlainTextParser()
-tika_parser = TikaParser()
-
-parsers: dict[str, Parser] = {
-    ".txt": plain_text_parser,
-    "text": plain_text_parser,
-}
-
-
-def transform(path: str):
-    [_, ext] = os.path.splitext(path)
-    parser = parsers.get(ext)
-    if parser is None:
-        parser = tika_parser
-    mapping = parser.parse(path)
-    return mapping
 
 
 # recursive ingest the file / folder
-def ingest(path: str):
+def ingest(path: str, ignore_dir: set[str] = set()):
     for root, dirs, files in os.walk(path, True):
         # ignore hidden file and path
         files = [f for f in files if not f[0] == "."]
-        dirs[:] = [d for d in dirs if not d[0] == "."]
+        dirs[:] = [d for d in dirs if not d[0] == "." and d not in ignore_dir]
 
         bulk([transform(os.path.join(root, name)) for name in files])
 

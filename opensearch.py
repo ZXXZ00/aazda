@@ -1,3 +1,4 @@
+import base64
 from dataclasses import dataclass, fields
 from typing import Any, Dict, List, Optional
 from opensearchpy import OpenSearch
@@ -34,7 +35,10 @@ stemmed_analyzer = {
 }
 
 setting = {
-    "index": {"number_of_shards": 2},
+    "index": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0,
+    },
     "analysis": {
         "analyzer": stemmed_analyzer,
         "filter": stop_words,
@@ -125,6 +129,11 @@ mapping = {
 }
 
 
+def get_id(mapping: Mapping) -> str:
+    encoded_id = base64.urlsafe_b64encode(mapping.path.encode()).decode()
+    return encoded_id[:512]
+
+
 def create_index():
     res = client.indices.create(
         index_name, body={"settings": setting, "mappings": mapping}
@@ -140,16 +149,36 @@ def delete_index():
 
 
 # return success or not
-def bulk(docs: list[Mapping]) -> bool:
+def bulk(docs: List[Mapping]) -> bool:
     if len(docs) == 0:
         return True
-    json_array = map(lambda x: x.to_json(), docs)
-    operations = [{"index": {"_index": index_name}}] * (2 * len(docs))
-    operations[1::2] = json_array
+
+    operations = []
+    for doc in docs:
+        operations.append({"index": {"_index": index_name, "_id": get_id(doc)}})
+        operations.append(doc.to_json())
 
     res = client.bulk(operations)
     print(res)
     return not res["errors"]
+
+
+# return the number of deleted documents
+def delete_by_path_query(paths: list[str]) -> int:
+    if len(paths) == 0:
+        return 0
+    res = client.delete_by_query(
+        index=index_name,
+        body={
+            "query": {
+                "terms": {
+                    "path": paths,
+                }
+            }
+        },
+    )
+    print(res)
+    return res["deleted"]
 
 
 def search(query):

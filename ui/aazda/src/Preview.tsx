@@ -20,7 +20,7 @@ export function Preview({ id, type, path }: PreviewProps) {
   const [content, setContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const mimeType = type === 'unknown' ? mime.getType(path) : type;
+  const mimeType = type === 'UNKNOWN' ? mime.getType(path) : type;
   const filePath = `file://${path}`;
 
   useEffect(() => {

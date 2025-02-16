@@ -26,6 +26,9 @@ def DEFAULT_FILTER(key: str, value: CastedValue) -> bool:
 
 # parsing using tika default true to get xml content
 class TikaParser(Parser):
+    metadata_filter: Callable[[str, CastedValue], bool]
+    xmlContent: bool
+
     def __init__(
         self,
         metadata_filter: Callable[[str, CastedValue], bool] = DEFAULT_FILTER,
@@ -56,14 +59,14 @@ class TikaParser(Parser):
             return ret
         return None
 
-    # always return unknown for the type, this doesn't call tika
+    # always return UNKNOWN for the type, this doesn't call tika
     def extract_basic_metadata(self, path: str) -> FileMetadata:
         abs_path = os.path.abspath(path)
         stats = os.stat(abs_path)
         return FileMetadata(
             os.path.basename(path),
             abs_path,
-            "unknown",
+            "UNKNOWN",
             stats.st_size,
             datetime.fromtimestamp(stats.st_ctime).isoformat(),
             datetime.fromtimestamp(stats.st_mtime).isoformat(),
