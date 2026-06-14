@@ -1,33 +1,56 @@
 import os
 import sys
+from typing import Iterable, Optional
+
 from parse import transform
-from opensearch import bulk
+from opensearch import bulk, Mapping
+from path_env import HOME_DIRECTORY, IGNORE_DIR
+from util import walk
 
 
 # recursive ingest the file / folder
-def ingest(path: str, ignore_dir: set[str] = set()):
-    for root, dirs, files in os.walk(path, True):
-        # ignore hidden file and path
-        files = [f for f in files if not f[0] == "."]
-        dirs[:] = [d for d in dirs if not d[0] == "." and d not in ignore_dir]
+def ingest_recursive(path: str, ignore_dir: tuple[str, ...] = ()):
+    children = walk(path, ignore_dir)
+    result: list[Mapping] = []
+    for child in children:
+        try:
+            result.append(transform(child))
+        except Exception as e:
+            print(f"Error parsing {child}: {e}")
+    bulk(result)
 
-        bulk([transform(os.path.join(root, name)) for name in files])
+
+def ingest_paths(paths: Iterable[str], ignore_path_does_not_exist: bool = False):
+    result: list[Mapping] = []
+    for path in paths:
+        try:
+            result.append(transform(path))
+        except Exception as e:
+            if ignore_path_does_not_exist and isinstance(e, FileNotFoundError):
+                continue
+            print(f"Error parsing {path}: {e}")
+    bulk(result)
 
 
-def ingest_file(path: str):
-    bulk([transform(path)])
+def ingest_all(ignore: Optional[tuple[str, ...]] = None):
+    if ignore is None:
+        ignore = IGNORE_DIR
+    return ingest_recursive(HOME_DIRECTORY, ignore)
 
 
 def main():
+    if len(sys.argv) == 1:
+        ingest_all()
+        return
     if len(sys.argv) != 2:
-        print("Usage: python script.py <path>")
+        print("Usage: python ingest.py <path>")
         return
     path = sys.argv[1]
 
     if os.path.isdir(path):
-        return ingest(path)
+        return ingest_recursive(path)
 
-    return ingest_file(path)
+    return ingest_paths([path])
 
 
 if __name__ == "__main__":

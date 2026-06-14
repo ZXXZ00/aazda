@@ -9,7 +9,10 @@ from watchdog.observers import Observer
 import sys
 import signal
 
+from ingest import ingest_paths
+from opensearch import delete_by_path_query
 from path_env import HOME_DIRECTORY, IGNORE_DIR, TRASH_DIR
+from util import is_hidden, walk
 
 
 class FileEventHandler(FileSystemEventHandler):
@@ -110,6 +113,31 @@ class FileEventHandler(FileSystemEventHandler):
         print("dir_moved_to", dir_moved_to)
         print("dir_deleted", dir_deleted)
 
+        # when a dir is moved or deleted, the files inside should be checked too
+        to_upsert = files_upsert | dir_upsert
+        to_delete = files_deleted | dir_deleted
+        for src, dest in dir_moved_from.items():
+            to_delete.add(src)
+            to_upsert.add(dest)
+            children = walk(dest, self.paths_to_ignore)
+            to_upsert.update(children)
+            # since the children is full path, need to get src + relative path
+            to_delete.update(map(lambda child: src + child[len(dest) :], children))
+        print("to_upsert", to_upsert)
+        print("to_delete", to_delete)
+
+        # after all the processing
+        # the to_upsert and to_delete still doesn't necessarily is 100% correct
+        # because a file can get created and deleted
+        # or created and moved else where
+        # it would require much more complex logic to handle that
+        # as long we can capture all the creation, upate, delete, move
+        # extra false positive is fine
+
+        # TODO: error handling
+        ingest_paths(to_upsert, True)
+        delete_by_path_query(list(to_delete))
+
     def on_any_event(self, event):
         if event.is_synthetic:
             return
@@ -119,7 +147,7 @@ class FileEventHandler(FileSystemEventHandler):
             self.paths_to_ignore
         ) or event.dest_path.startswith(self.paths_to_ignore):
             return
-        if os.path.basename(event.src_path).startswith("."):
+        if is_hidden(event.src_path):
             return
         self.queue.put(event)
 

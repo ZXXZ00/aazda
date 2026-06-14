@@ -148,7 +148,7 @@ def delete_index():
     return res
 
 
-# return success or not
+# TODO: change return type from true, false to list of failed documents
 def bulk(docs: List[Mapping]) -> bool:
     if len(docs) == 0:
         return True

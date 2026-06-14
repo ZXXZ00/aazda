@@ -11,6 +11,8 @@ URL = "http://localhost:9998/tika"
 
 CastedValue = Union[int, float, str, bool, datetime, None]
 
+CONTENT_IGNORED_TYPE_PREFIX = ("application/x-",)
+
 
 def DEFAULT_FILTER(key: str, value: CastedValue) -> bool:
     if value is None:
@@ -92,11 +94,16 @@ class TikaParser(Parser):
             for key, values in normalized_metadata.items()
             if (mapping := self.to_metadata_mapping(key, values))
         ]
-        file_type = (
-            metadata["Content-Type"].split(";")[0]
-            if "Content-Type" in metadata
-            else detector.from_file(path)
-        )
+
+        content_type = metadata.get("Content-Type")
+        # sometimes content type is a list
+        if isinstance(content_type, list):
+            content_type = content_type[0]
+        if content_type:
+            file_type = content_type.split(";")[0]
+        else:
+            file_type = detector.from_file(path, URL)
+
         return Mapping(
             name=file_meta.name,
             content=parsed["content"],
