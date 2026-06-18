@@ -25,5 +25,13 @@ declare namespace NodeJS {
 interface Window {
   ipcRenderer: {
     openFile(filePath: string): Promise<void>
+    getSettings(): Promise<{ watchDir: string; watchInterval: number; opacity?: number }>
+    saveSettings(config: { watchDir: string; watchInterval: number; opacity?: number }): Promise<boolean>
+    selectDirectory(): Promise<string | null>
+    getLogs(type: 'python' | 'electron'): Promise<string>
+    openLogFile(type: 'python' | 'electron'): Promise<boolean>
+    openLogsDir(): Promise<boolean>
+    restartPython(): Promise<boolean>
+    onSettingsUpdated(callback: (event: any, config: { watchDir: string; watchInterval: number; opacity?: number }) => void): () => void;
   }
 }

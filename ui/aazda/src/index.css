@@ -1,11 +1,32 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  --color: white;
-  background-color: #242424;
+
+  /* Theme variables - Default Dark Mode */
+  --bg-opacity: 0.72;
+  --bg-app: rgba(22, 22, 26, var(--bg-opacity));
+  --bg-card: rgba(30, 30, 34, 0.45);
+  --bg-input: rgba(0, 0, 0, 0.25);
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-selected: rgba(99, 102, 241, 0.85); /* Indigo Accent */
+  --text-selected: #ffffff;
+  
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(99, 102, 241, 0.5);
+  --shadow-main: 0 16px 36px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  
+  --scroll-thumb: rgba(255, 255, 255, 0.12);
+  --scroll-thumb-hover: rgba(255, 255, 255, 0.2);
+  
+  --preview-bg: rgba(0, 0, 0, 0.15);
+  --preview-border: rgba(255, 255, 255, 0.05);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,17 +34,70 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-
 @media (prefers-color-scheme: light) {
   :root {
-    --color: black;
-    background-color: #ffffff;
+    /* Theme variables - Light Mode */
+    --bg-opacity: 0.85;
+    --bg-app: rgba(255, 255, 255, var(--bg-opacity));
+    --bg-card: rgba(245, 245, 247, 0.65);
+    --bg-input: rgba(0, 0, 0, 0.05);
+    --bg-hover: rgba(0, 0, 0, 0.05);
+    --bg-selected: rgba(79, 70, 229, 0.9); /* Vibrant Indigo */
+    --text-selected: #ffffff;
+    
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+    
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-focus: rgba(79, 70, 229, 0.45);
+    --shadow-main: 0 16px 36px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+    
+    --scroll-thumb: rgba(0, 0, 0, 0.15);
+    --scroll-thumb-hover: rgba(0, 0, 0, 0.25);
+    
+    --preview-bg: rgba(255, 255, 255, 0.5);
+    --preview-border: rgba(0, 0, 0, 0.04);
   }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent !important;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px; /* Leave space for box-shadow so it doesn't get clipped */
+  box-sizing: border-box;
+}
+
+/* Custom Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
 }

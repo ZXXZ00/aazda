@@ -1,5 +1,9 @@
+import os
 from os import path
 from sys import platform
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.path.join(APP_DIR, "vector_db")
 
 HOME_DIRECTORY = path.expanduser("~")
 
